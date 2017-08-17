@@ -4,8 +4,8 @@ object Parsers {
   type Result[+A] = Option[(A, String)]
   type Parser[+A] = String => Result[A]
 
-  def oneOf(seqs: Seq[Char]*): Parser[String] = input => {
-    if(input.length == 0 || !seqs.exists(seq => seq.exists(ch => ch == input.charAt(0)))) None
+  def oneOf(seq: Seq[Char]): Parser[String] = input => {
+    if(input.length == 0 || !seq.exists(_ == input.charAt(0))) None
     else Some(input.substring(0, 1) -> input.substring(1))
   }
 
