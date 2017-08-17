@@ -1,21 +1,39 @@
 package com.github.kmizu.ll2017inodc
 
-object Calculator extends Parsers {
+import Parsers._
+
+object Calculator {
   def expression: Parser[Int] = additive
-  def additive: Parser[Int] = (multitive ~ (string("+") ~ multitive | string("-") ~ multitive).*).map{
+  def additive: Parser[Int] = P((multitive ~
+    ($("+") ~ multitive | $("-") ~ multitive).*).map {
     case (l, rs) => rs.foldLeft(l) { case (e, ("+", r)) => e + r; case (e, ("-", r)) => e - r }
+  })
+  def multitive: Parser[Int] = P((primary ~
+    ($("*") ~ primary | $("/") ~ primary).*).map {
+      case (l, rs) => rs.foldLeft(l) { case (e, ("*", r)) => e * r; case (e, ("/", r)) => e / r }
+    }
+  )
+  def primary: Parser[Int] = P(
+    ($("(") ~> expression <~ $(")")) | number
+  )
+  def number: Parser[Int] = oneOf('0'to'9').*.map {
+    digits => digits.mkString.toInt
   }
-  def multitive: Parser[Int] = (primary ~ (string("*") ~ primary | string("/") ~ primary).*).map{
-    case (l, rs) => rs.foldLeft(l) { case (e, ("*", r)) => e * r; case (e, ("/", r)) => e / r }
+
+  def calculate(input: String): Int = {
+    expression(input) match {
+      case Some((v, n)) => v
+      case None => sys.error("cannot reach here")
+    }
   }
-  def primary: Parser[Int] = {
-    (string("(") ~> expression <~ string(")")) | number
-  }
-  def number: Parser[Int] = oneOf('0'to'9').*.map{digits => digits.mkString.toInt}
 
   def main(args: Array[String]): Unit = {
-    println(expression("1+2*3"))
-    println(expression("1+5*3/4"))
-    println(expression("(1+5)*3/2"))
+    assert(3 == calculate("1+2"))
+    assert(-1 == calculate("1-2"))
+    assert(2 == calculate("1*2"))
+    assert(0 == calculate("1/2"))
+    assert(2 == calculate("1+2*3/4"))
+    assert(2 == calculate("(1+2)*3/4"))
+    assert(0 == calculate("(1+2)*(3/4)"))
   }
 }
