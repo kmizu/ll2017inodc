@@ -2,7 +2,7 @@ package com.github.kmizu.ll2017inodc
 
 import Parsers._
 
-object Calculator {
+object ExpressionCalculator {
   def expression: Parser[Int] = additive
   def additive: Parser[Int] = P((multitive ~
     ($("+") ~ multitive | $("-") ~ multitive).*).map {
